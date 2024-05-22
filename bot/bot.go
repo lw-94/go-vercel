@@ -56,6 +56,6 @@ func sendMessage(userID int64, message string) {
 	bot.Send(msg)
 }
 
-func Listen(w http.ResponseWriter, r *http.Request) {
+func Handler(w http.ResponseWriter, r *http.Request) {
 	router.ServeHTTP(w, r)
 }

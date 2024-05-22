@@ -1,13 +1,16 @@
 package bot
 
 import (
+	"fmt"
 	"log"
+	"net/http"
 
+	"github.com/gin-gonic/gin"
 	tgBotApi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func Handler() {
-	bot, err := tgBotApi.NewBotAPI("6706237172:AAFZyrXsYjMg2ion8MH2rG99Pf-Cjf-DjVw")
+func botListener(token string) {
+	bot, err := tgBotApi.NewBotAPI(token)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -31,4 +34,15 @@ func Handler() {
 			bot.Send(msg)
 		}
 	}
+}
+func Handler(w http.ResponseWriter, r *http.Request) {
+	g := gin.Default()
+
+	token := "6706237172:AAFZyrXsYjMg2ion8MH2rG99Pf-Cjf-DjVw"
+	g.Any("/*", func(c *gin.Context) {
+		fmt.Println(c)
+		botListener(token)
+	})
+
+	g.ServeHTTP(w, r)
 }

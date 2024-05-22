@@ -9,7 +9,7 @@ import (
 
 var router *gin.Engine
 
-func init() {
+func Init() {
 	router = gin.Default()
 
 	router.GET("/api/get", func(c *gin.Context) {
@@ -62,5 +62,6 @@ func sendMessage(userID int64, message string) {
 }
 
 func Listen(w http.ResponseWriter, r *http.Request) {
+	Init()
 	router.ServeHTTP(w, r)
 }

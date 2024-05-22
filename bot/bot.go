@@ -1,48 +1,66 @@
-package bot
+package api
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	tgBotApi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func botListener(token string) {
-	bot, err := tgBotApi.NewBotAPI(token)
-	if err != nil {
-		log.Panic(err)
-	}
+var router *gin.Engine
 
-	bot.Debug = true
+func init() {
+	router = gin.Default()
 
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	router.GET("/api/get", func(c *gin.Context) {
 
-	u := tgBotApi.NewUpdate(0)
-	u.Timeout = 60
-
-	updates := bot.GetUpdatesChan(u)
-
-	for update := range updates {
-		if update.Message != nil { // If we got a message
-			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-
-			msg := tgBotApi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-			msg.ReplyToMessageID = update.Message.MessageID
-
-			bot.Send(msg)
-		}
-	}
-}
-func Handler(w http.ResponseWriter, r *http.Request) {
-	g := gin.Default()
-
-	token := "6706237172:AAFZyrXsYjMg2ion8MH2rG99Pf-Cjf-DjVw"
-	g.Any("/*", func(c *gin.Context) {
-		fmt.Println(c)
-		botListener(token)
+		c.JSON(http.StatusOK, gin.H{"data": "user"})
 	})
 
-	g.ServeHTTP(w, r)
+	router.POST("/api/post", func(c *gin.Context) {
+		update := tgbotapi.Update{}
+		err := c.BindJSON(&update)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// 检查是否有新消息
+		if update.Message != nil {
+			// 获取用户发送的消息内容
+			message := update.Message.Text
+			// 获取用户的 ID
+			userID := update.Message.From.ID
+			// 获取用户的用户名
+			username := update.Message.From.UserName
+
+			// 处理用户发送的消息
+			handleMessage(userID, username, message)
+		}
+
+		c.String(http.StatusOK, "OK")
+	})
+}
+
+func handleMessage(userID int64, username string, message string) {
+	// 根据用户发送的消息进行处理
+	switch message {
+	case "/start":
+		sendMessage(userID, "Hello, "+username+"! I'm your Telegram bot.")
+	case "/help":
+		sendMessage(userID, "How can I help you?")
+	default:
+		sendMessage(userID, "You said: "+message)
+	}
+}
+
+func sendMessage(userID int64, message string) {
+	// 发送消息给用户
+	bot, _ := tgbotapi.NewBotAPI("6706237172:AAFZyrXsYjMg2ion8MH2rG99Pf-Cjf-DjVw")
+	msg := tgbotapi.NewMessage(userID, message)
+	bot.Send(msg)
+}
+
+func Listen(w http.ResponseWriter, r *http.Request) {
+	router.ServeHTTP(w, r)
 }

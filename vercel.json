@@ -3,10 +3,6 @@
     {
       "src": "/.*",
       "dest": "/api/bot.go"
-    },
-    {
-      "src": "/api/.*",
-      "dest": "/api/server.go"
     }
   ]
 }

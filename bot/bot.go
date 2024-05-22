@@ -9,15 +9,10 @@ import (
 
 var router *gin.Engine
 
-func Init() {
+func init() {
 	router = gin.Default()
 
-	router.GET("/api/get", func(c *gin.Context) {
-
-		c.JSON(http.StatusOK, gin.H{"data": "user"})
-	})
-
-	router.POST("/api/post", func(c *gin.Context) {
+	router.Any("/*", func(c *gin.Context) {
 		update := tgbotapi.Update{}
 		err := c.BindJSON(&update)
 		if err != nil {
@@ -62,6 +57,5 @@ func sendMessage(userID int64, message string) {
 }
 
 func Listen(w http.ResponseWriter, r *http.Request) {
-	Init()
 	router.ServeHTTP(w, r)
 }
